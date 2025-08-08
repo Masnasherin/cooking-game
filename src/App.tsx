@@ -33,6 +33,7 @@ const App: React.FC = () => {
   const [selectedIngredients, setSelectedIngredients] = useState<Set<string>>(new Set());
   const [feedbackMessage, setFeedbackMessage] = useState<string>('');
   const [currentDishIndex, setCurrentDishIndex] = useState(0);
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
 
   const fetchNewRecipe = useCallback(() => {
     setGameState(GameState.LOADING);
@@ -40,6 +41,7 @@ const App: React.FC = () => {
     setSelectedIngredients(new Set());
     
     const dishName = DISHES[currentDishIndex % DISHES.length];
+    setShowCorrectAnswer(false);
     
     generateRecipeAndDistractors(dishName)
       .then(data => {
@@ -72,6 +74,7 @@ const App: React.FC = () => {
       return newSelection;
     });
     setFeedbackMessage('');
+    setShowCorrectAnswer(false);
   };
 
   const handleCheckRecipe = () => {
@@ -87,6 +90,7 @@ const App: React.FC = () => {
       if (isCorrect) {
         setGameState(GameState.SUCCESS);
         setFeedbackMessage('');
+        setShowCorrectAnswer(false);
       } else {
         setFeedbackMessage("That's not quite right. Give it another try!");
         setGameState(GameState.READY_TO_PLAY);
@@ -96,6 +100,10 @@ const App: React.FC = () => {
   
   const handlePlayAgain = () => {
     setCurrentDishIndex(prev => prev + 1);
+  };
+
+  const handleShowAnswer = () => {
+    setShowCorrectAnswer(true);
   };
 
   const renderContent = () => {
@@ -139,6 +147,30 @@ const App: React.FC = () => {
 
             {feedbackMessage && (
               <p className="text-center text-red-500 font-semibold mb-4 animate-pulse">{feedbackMessage}</p>
+            )}
+
+            {feedbackMessage && !showCorrectAnswer && (
+              <div className="text-center mb-4">
+                <button
+                  onClick={handleShowAnswer}
+                  className="bg-blue-500 text-white font-semibold py-2 px-6 rounded-full hover:bg-blue-600 transition-all"
+                >
+                  Show Correct Answer
+                </button>
+              </div>
+            )}
+
+            {showCorrectAnswer && recipe && (
+              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-bold text-green-700 mb-2">✅ Correct Ingredients:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {recipe.ingredients.map(ingredient => (
+                    <span key={ingredient} className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      {ingredient}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
 
             <div className="text-center">
